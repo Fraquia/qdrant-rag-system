@@ -1,0 +1,42 @@
+{
+    "doc_1":{
+    "nome": "Frigorifero Combinato Bosch KGN39VI35",
+    "descrizione": "Il frigorifero combinato Bosch KGN39VI35 offre un perfetto equilibrio tra design moderno e tecnologia avanzata. Con una capacità di 366 litri, dispone di scomparti separati per conservare freschi sia gli alimenti che i surgelati. La tecnologia NoFrost impedisce la formazione di ghiaccio, riducendo la necessità di sbrinamento manuale. È dotato di classe energetica A++ che garantisce un risparmio energetico notevole.",
+    "dimensioni": {
+      "altezza": "203 cm",
+      "larghezza": "60 cm",
+      "profondità": "66 cm"
+    },
+    "peso": "77 kg",
+    "prezzo": "€899",
+    "colore": "Acciaio Inox",
+    "garanzia": "2 anni"
+  },
+  "doc_2":{
+    "nome": "Comodino Moderno Malmo",
+    "descrizione": "Il comodino Malmo è un perfetto esempio di design scandinavo, con linee semplici e pulite che si adattano a qualsiasi ambiente. Realizzato in legno massello di rovere, dispone di un cassetto spazioso con guide silenziose e un ampio ripiano per appoggiare libri o altri oggetti. La sua struttura compatta lo rende perfetto per stanze di ogni dimensione.",
+    "dimensioni": {
+      "altezza": "50 cm",
+      "larghezza": "45 cm",
+      "profondità": "35 cm"
+    },
+    "peso": "9 kg",
+    "prezzo": "€149",
+    "colore": "Rovere Naturale",
+    "montaggio": "Richiesto, semplice con istruzioni incluse"
+  },
+  "doc_3":{
+    "nome": "Cassettiera Hemnes a 6 cassetti",
+    "descrizione": "Elegante e funzionale, la cassettiera Hemnes con 6 cassetti offre ampio spazio per l'organizzazione dei tuoi abiti e accessori. Realizzata in legno di pino massiccio, questa cassettiera si distingue per la sua resistenza e per il tocco classico, adattabile sia a camere moderne che tradizionali. I cassetti scorrono facilmente grazie alle guide integrate.",
+    "dimensioni": {
+      "altezza": "160 cm",
+      "larghezza": "95 cm",
+      "profondità": "50 cm"
+    },
+    "peso": "50 kg",
+    "prezzo": "€249",
+    "colore": "Bianco lucido",
+    "materiale": "Legno di pino",
+    "montaggio": "Facile con istruzioni incluse"
+  }
+}
