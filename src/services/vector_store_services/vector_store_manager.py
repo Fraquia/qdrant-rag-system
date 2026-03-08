@@ -1,45 +1,28 @@
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams, Filter, FieldCondition, MatchValue
 from langchain_openai import OpenAIEmbeddings
-from dotenv import load_dotenv
 from uuid import uuid4
 from langchain_core.documents import Document
 from langchain_qdrant import QdrantVectorStore
-from typing import List, Any, Dict
-import os
-
+from typing import List, Any
 import logging
 
-# set the api key
-load_dotenv()
-os.environ["OPENAI_API_KEY"] = os.getenv('OPENAI_API_KEY')
+from src.config import settings
 
 
 class VectorStoreManager:
 
     def __init__(self) -> None:
+        self.client = QdrantClient(host=settings.qdrant_host, port=settings.qdrant_port)
+        self.embeddings = OpenAIEmbeddings(model=settings.embedding_model)
 
-        port = int(os.getenv('QDRANT_PORT'))
-        host = os.getenv('QDRANT_HOST')
-
-        self.client = QdrantClient(host=host, port=port)
-        self.embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-        self.collection = None
-
-        # self.client = QdrantClient(":memory:")           #for testing purposes
-
-    # support methods
-
-    def _load_collection(self, collection_name: str) -> QdrantVectorStore | None:
+    def load_collection(self, collection_name: str) -> QdrantVectorStore | None:
         try:
-            collection = QdrantVectorStore(
+            return QdrantVectorStore(
                 client=self.client,
                 collection_name=collection_name,
                 embedding=self.embeddings,
-                # url="http://localhost:6333",
             )
-            self.collection = collection
-
         except Exception as e:
             logging.error(f"Error loading collection: {e}")
             return None
@@ -78,8 +61,7 @@ class VectorStoreManager:
 
         return out
 
-    # functions to interact with the vector store
-    def create_collection(self, collection_name: str) -> None | bool:
+    def create_collection(self, collection_name: str) -> bool:
         try:
             self.client.create_collection(
                 collection_name=collection_name,
@@ -91,28 +73,21 @@ class VectorStoreManager:
             logging.error(f"Error creating collection: {e}")
             return False
 
-
     def add_documents_to_existing_collection(self, collection_name: str, documents: list[Document]) -> bool | dict:
         try:
-            self._load_collection(collection_name)
+            collection = self.load_collection(collection_name)
             uuids = [str(uuid4()) for _ in range(len(documents))]
-            self.collection.add_documents(documents=documents, ids=uuids)
+            collection.add_documents(documents=documents, ids=uuids)
             return True
         except Exception as e:
+            logging.error(f"Error adding documents: {e}")
             return {"error": str(e)}
 
-        pass
-
-    def retrieve_documents_from_collection(self, collection_name: str, query: str, k: int, filter: bool = None) -> list[str]|bool:
+    def retrieve_documents_from_collection(self, collection_name: str, query: str, k: int) -> list[str] | None:
         try:
-            self._load_collection(collection_name)
-            results = self.collection.similarity_search(
-                query=query,
-                k=k
-            )
-            text_result = [doc.page_content for doc in results]  # return only document contents
-            return text_result
-
+            collection = self.load_collection(collection_name)
+            results = collection.similarity_search(query=query, k=k)
+            return [doc.page_content for doc in results]
         except Exception as e:
             logging.error(f"Error retrieving documents: {e}")
             return None
@@ -122,42 +97,38 @@ class VectorStoreManager:
             self.client.delete(
                 collection_name=collection_name,
                 points_selector={"must": [{"key": "title", "match": {"value": document_id}}]})
+            return True
         except Exception as e:
             logging.error(f"Error deleting document: {e}")
             return False
 
     def delete_docs_by_metadata_filter(self, collection_name: str, metadata=None):
-        self._load_collection(collection_name)
-        res = self.client.delete(
-            collection_name=collection_name,
-            points_selector=self._qdrant_filter_from_dict(metadata),
-        )
-        return res
+        try:
+            res = self.client.delete(
+                collection_name=collection_name,
+                points_selector=self._qdrant_filter_from_dict(metadata),
+            )
+            return res
+        except Exception as e:
+            logging.error(f"Error deleting documents by filter: {e}")
+            return None
+
+    def delete_collection(self, collection_name: str) -> bool:
+        try:
+            self.client.delete_collection(collection_name=collection_name)
+            logging.info(f"Collection '{collection_name}' deleted successfully")
+            return True
+        except Exception as e:
+            logging.error(f"Error deleting collection: {e}")
+            return False
 
     def list_collections(self):
-        collections_list = self.client.get_collections()
-
-        return collections_list
+        return self.client.get_collections()
 
     def get_all_docs_from_collection(self, collection_name: str):
-        # retrieving the points
         all_points, _ = self.client.scroll(
             collection_name=collection_name,
             with_vectors=True,
             limit=10000,
         )
-
         return all_points
-
-    def load_collection(self, collection_name: str) -> QdrantVectorStore | None:
-        try:
-            collection = QdrantVectorStore(
-                client=self.client,
-                collection_name=collection_name,
-                embedding=self.embeddings,
-            )
-            return collection
-
-        except Exception as e:
-            logging.error(f"Error loading collection: {e}")
-            return None
